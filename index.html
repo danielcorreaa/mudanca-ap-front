@@ -66,15 +66,15 @@
             <div class="card p-6">
                 <h3 class="font-bold text-lg mb-4 text-slate-700">Novo Item de Mudança</h3>
                 <form id="add-form" onsubmit="handleFormSubmit(event)" class="grid grid-cols-1 gap-3">
-                    <input type="text" id="item-name" required placeholder="Ex: Pintura, Geladeira, Piso..." class="border p-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                    <div class="flex gap-2">
-                        <input type="number" step="0.01" id="item-value" placeholder="Valor Estimado (R$)" class="border p-2 rounded-lg flex-1 outline-none">
-                        <select id="item-category" class="border p-2 rounded-lg outline-none bg-white">
+                    <input type="text" id="item-name" required placeholder="Ex: Pintura, Geladeira, Piso..." class="border p-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none w-full">
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="number" step="0.01" id="item-value" placeholder="Valor Estimado (R$)" class="border p-2 rounded-lg flex-1 outline-none w-full">
+                        <select id="item-category" class="border p-2 rounded-lg outline-none bg-white w-full sm:w-auto min-w-[160px]">
                             <option value="novo">Apartamento Novo</option>
                             <option value="antigo">Apartamento Antigo</option>
                         </select>
                     </div>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition disabled:opacity-50" id="btn-add">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition disabled:opacity-50 w-full" id="btn-add">
                         Adicionar Item
                     </button>
                 </form>
@@ -127,6 +127,7 @@
     <script>
         //const API_URL = 'http://localhost:8080/api/itens';
 		const API_URL = "https://mudanca-ap.onrender.com/api/itens"
+
         let items = [];
         let currentEditId = null;
 
