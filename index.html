@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Planejador de Mudança - Cloud</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            transition: transform 0.2s;
+        }
+
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #3b82f6;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .loading-skeleton {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Cabeçalho -->
+        <header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800">Organizador de Mudança 📦</h1>
+                <p class="text-slate-600 text-lg">Gerencie reformas, compras e pendências.</p>
+                <p id="status-connection" class="text-slate-400 text-sm flex items-center gap-2 mt-1">
+                    <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
+                    Sincronizando com a API Java...
+                </p>
+            </div>
+            <div class="bg-blue-600 text-white p-4 rounded-xl shadow-lg min-w-[200px]">
+                <p class="text-sm opacity-80 uppercase font-bold tracking-wider">Orçamento Total</p>
+                <h2 id="total-budget" class="text-2xl font-bold">R$ 0,00</h2>
+            </div>
+        </header>
+
+        <!-- Ações Rápidas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="card p-6">
+                <h3 class="font-bold text-lg mb-4 text-slate-700">Novo Item de Mudança</h3>
+                <form id="add-form" onsubmit="handleFormSubmit(event)" class="grid grid-cols-1 gap-3">
+                    <input type="text" id="item-name" required placeholder="Ex: Pintura, Geladeira, Piso..." class="border p-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <div class="flex gap-2">
+                        <input type="number" step="0.01" id="item-value" placeholder="Valor Estimado (R$)" class="border p-2 rounded-lg flex-1 outline-none">
+                        <select id="item-category" class="border p-2 rounded-lg outline-none bg-white">
+                            <option value="novo">Apartamento Novo</option>
+                            <option value="antigo">Apartamento Antigo</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition disabled:opacity-50" id="btn-add">
+                        Adicionar Item
+                    </button>
+                </form>
+            </div>
+
+            <div class="card p-6 flex flex-col justify-center">
+                <h3 class="font-bold text-lg mb-2 text-slate-700">Progresso da Mudança</h3>
+                <div class="progress-bar mt-2">
+                    <div id="main-progress" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <p id="progress-text" class="text-sm text-slate-500 mt-2">Calculando pendências...</p>
+            </div>
+        </div>
+
+        <!-- Listas Principais -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Novo Imóvel -->
+            <section>
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-2 h-8 bg-green-500 rounded-full"></div>
+                    <h2 class="text-xl font-bold text-slate-800">Apartamento Novo</h2>
+                </div>
+                <div id="list-novo" class="space-y-3 min-h-[50px]"></div>
+            </section>
+
+            <!-- Antigo Imóvel -->
+            <section>
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-2 h-8 bg-orange-500 rounded-full"></div>
+                    <h2 class="text-xl font-bold text-slate-800">Apartamento Antigo</h2>
+                </div>
+                <div id="list-antigo" class="space-y-3 min-h-[50px]"></div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Modal para Edição -->
+    <div id="modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-xl w-full max-w-sm shadow-2xl">
+            <h3 class="font-bold text-lg mb-4 text-slate-800">Atualizar Gasto</h3>
+            <p id="modal-item-name" class="text-sm text-slate-500 mb-2"></p>
+            <input type="number" step="0.01" id="edit-value" class="border w-full p-2 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0.00">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal()" class="px-4 py-2 text-slate-500 hover:text-slate-700 transition">Cancelar</button>
+                <button onclick="saveValue()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Salvar Alteração</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        //const API_URL = 'http://localhost:8080/api/itens';
+		const API_URL = "https://mudanca-ap.onrender.com/api/itens"
+        let items = [];
+        let currentEditId = null;
+
+        // --- INTEGRAÇÃO COM A API ---
+
+        async function fetchItems() {
+            const statusLabel = document.getElementById('status-connection');
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error("Erro na API");
+                
+                items = await response.json();
+                
+                statusLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500"></span> Sincronizado com o servidor';
+                render();
+            } catch (error) {
+                console.error("Erro ao conectar:", error);
+                statusLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span> Servidor offline';
+            }
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-add');
+            const name = document.getElementById('item-name').value;
+            const value = parseFloat(document.getElementById('item-value').value) || 0;
+            const category = document.getElementById('item-category').value;
+
+            btn.disabled = true;
+            btn.innerText = 'Salvando...';
+
+            const newItem = { name, value, category, completed: false };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newItem)
+                });
+
+                if (response.ok) {
+                    document.getElementById('add-form').reset();
+                    await fetchItems();
+                }
+            } catch (err) {
+                alert("Falha ao salvar item.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Adicionar Item';
+            }
+        }
+
+        async function toggleComplete(id) {
+            const item = items.find(i => i.id === id);
+            const updatedItem = { ...item, completed: !item.completed };
+
+            try {
+                await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedItem)
+                });
+                items = items.map(i => i.id === id ? updatedItem : i);
+                render();
+            } catch (err) {
+                fetchItems();
+            }
+        }
+
+        async function deleteItem(id) {
+            if (!confirm("Deseja excluir este item?")) return;
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                if (response.ok) fetchItems();
+            } catch (err) {
+                alert("Erro ao excluir.");
+            }
+        }
+
+        async function saveValue() {
+            const newValue = parseFloat(document.getElementById('edit-value').value) || 0;
+            const item = items.find(i => i.id === currentEditId);
+            const updatedItem = { ...item, value: newValue };
+
+            try {
+                const response = await fetch(`${API_URL}/${currentEditId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedItem)
+                });
+                
+                if (response.ok) {
+                    closeModal();
+                    fetchItems();
+                }
+            } catch (err) {
+                alert("Erro ao atualizar.");
+            }
+        }
+
+        // --- RENDERIZAÇÃO DA INTERFACE ---
+
+        function render() {
+            const listNovo = document.getElementById('list-novo');
+            const listAntigo = document.getElementById('list-antigo');
+            listNovo.innerHTML = '';
+            listAntigo.innerHTML = '';
+
+            let totalGeral = 0;
+            let totalConcluido = 0;
+
+            items.forEach(item => {
+                const element = document.createElement('div');
+                const isNovo = item.category === 'novo';
+                
+                element.className = `card p-4 flex items-center justify-between border-l-4 transition-all ${
+                    item.completed 
+                    ? 'border-slate-300 bg-slate-50' 
+                    : (isNovo ? 'border-green-500' : 'border-orange-500')
+                }`;
+                
+                const valueFormatted = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.value);
+                totalGeral += item.value;
+                if(item.completed) totalConcluido++;
+
+                element.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" ${item.completed ? 'checked' : ''} 
+                            onchange="toggleComplete('${item.id}')" 
+                            class="w-5 h-5 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <div class="${item.completed ? 'opacity-50' : ''}">
+                            <p class="font-semibold text-slate-800 ${item.completed ? 'line-through' : ''}">${item.name}</p>
+                            <p class="text-sm font-medium text-blue-600 cursor-pointer hover:text-blue-800 flex items-center gap-1" onclick="openModal('${item.id}', '${item.name}')">
+                                <span>${valueFormatted}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                            </p>
+                        </div>
+                    </div>
+                    <button onclick="deleteItem('${item.id}')" class="text-slate-400 hover:text-red-500 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                `;
+
+                if (isNovo) listNovo.appendChild(element);
+                else listAntigo.appendChild(element);
+            });
+
+            document.getElementById('total-budget').innerText = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalGeral);
+            
+            const pct = items.length > 0 ? (totalConcluido / items.length) * 100 : 0;
+            document.getElementById('main-progress').style.width = `${pct}%`;
+            document.getElementById('progress-text').innerText = items.length > 0 
+                ? `${totalConcluido} de ${items.length} tarefas concluídas (${Math.round(pct)}%)`
+                : "Nenhuma tarefa cadastrada.";
+        }
+
+        // --- CONTROLE DO MODAL ---
+
+        function openModal(id, name) {
+            currentEditId = id;
+            const item = items.find(i => i.id === id);
+            document.getElementById('modal-item-name').innerText = `Editando: ${name}`;
+            document.getElementById('edit-value').value = item.value;
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('edit-value').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+            currentEditId = null;
+        }
+
+        window.onclick = (event) => {
+            if (event.target == document.getElementById('modal')) closeModal();
+        }
+
+        fetchItems();
+    </script>
+</body>
+</html>
