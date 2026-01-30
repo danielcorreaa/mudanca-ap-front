@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizador de Mudança - Início</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        solarized: { bg: '#002b36', card: '#073642', text: '#93a1a1', accent: '#268bd2' },
+                        cyber: { bg: '#050505', card: '#1a1a1a', text: '#00ff41', accent: '#ff00ff' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Montserrat:wght@700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        .font-brand { font-family: 'Montserrat', sans-serif; }
+        
+        /* Estilos de Tema Comuns */
+        .dark body { background-color: #0f172a; color: #f1f5f9; }
+        .theme-solarized body { background-color: #002b36; color: #93a1a1; }
+        .theme-cyber body { background-color: #050505; color: #00ff41; border-color: #00ff41; }
+
+        .hero-pattern {
+            background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .dark .hero-pattern { background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); }
+    </style>
+</head>
+<body class="hero-pattern min-h-screen">
+    <nav class="p-6 flex justify-between items-center max-w-7xl mx-auto">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl">📦</span>
+            <span class="font-brand font-bold text-xl uppercase tracking-tighter">MudaEasy</span>
+        </div>
+        <div class="flex gap-4">
+            <a href="login.html" class="px-6 py-2 rounded-full font-semibold border border-current hover:opacity-80 transition">Entrar</a>
+            <a href="app.html" class="px-6 py-2 rounded-full font-semibold bg-blue-600 text-white hover:bg-blue-700 transition">Meu Painel</a>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-6 pt-20 pb-32 text-center">
+        <h1 class="text-5xl md:text-7xl font-brand font-extrabold mb-6 leading-tight">Sua mudança sob <span class="text-blue-500">controle</span>.</h1>
+        <p class="text-xl opacity-80 mb-10 max-w-2xl mx-auto">Organize itens, controle orçamentos e acompanhe o progresso da sua nova jornada em um só lugar.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="login.html" class="px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold text-lg shadow-xl hover:scale-105 transition-transform">Começar Agora Grátis</a>
+        </div>
+    </main>
+
+    <script>
+        // Sincronização de Tema
+        function applyTheme() {
+            const theme = localStorage.getItem('app-theme') || 'light';
+            document.documentElement.className = '';
+            if (theme !== 'light') {
+                if (theme === 'dark') document.documentElement.classList.add('dark');
+                else document.documentElement.classList.add(`theme-${theme}`);
+            }
+        }
+        applyTheme();
+        window.addEventListener('storage', (e) => { if(e.key === 'app-theme') applyTheme(); });
+    </script>
+</body>
+</html>

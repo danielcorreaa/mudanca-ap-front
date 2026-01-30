@@ -3,132 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MudaEasy - Login</title>
+    <title>Organizador de Mudança - Entrar ou Cadastrar</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        solarized: { bg: '#002b36', card: '#073642', text: '#93a1a1', accent: '#268bd2' },
-                        cyber: { bg: '#050505', card: '#1a1a1a', text: '#00ff41', accent: '#ff00ff' },
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Montserrat:wght@700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; transition: all 0.3s; }
+        
+        body { font-family: 'Inter', sans-serif; }
         .font-brand { font-family: 'Montserrat', sans-serif; }
 
-        /* Estilos de Tema */
-        .dark body { background-color: #0f172a; color: #f1f5f9; }
-        .theme-solarized body { background-color: #002b36; color: #93a1a1; }
-        .theme-cyber body { background-color: #050505; color: #00ff41; }
+        .hero-pattern {
+            background-color: #f8fafc;
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
 
         .auth-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(128, 128, 128, 0.2);
+            background: white;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
         }
-        .light .auth-card { background: white; border-color: #e2e8f0; }
+
+        .input-field {
+            background-color: #f1f5f9;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .input-field:focus {
+            background-color: #ffffff;
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-6">
-    <div class="w-full max-w-md auth-card p-8 rounded-3xl shadow-2xl">
-        <div class="text-center mb-8">
-            <h1 id="auth-title" class="text-3xl font-brand font-bold mb-2">Bem-vindo de volta</h1>
-            <p id="auth-subtitle" class="opacity-70">Acesse sua lista de mudança</p>
+<body class="hero-pattern min-h-screen flex flex-col">
+
+    <!-- Navegação Simplificada -->
+    <nav class="max-w-7xl mx-auto px-6 py-6 w-full flex justify-between items-center">
+        <a href="landing.html" class="flex items-center gap-2 group">
+            <span class="text-2xl transition-transform group-hover:-translate-x-1">⬅️</span>
+            <span class="font-brand font-bold text-slate-800 tracking-tight">Voltar</span>
+        </a>
+        <div class="flex items-center gap-2">
+            <span class="text-2xl">📦</span>
+            <span class="font-brand font-bold text-xl tracking-tight text-slate-800">Organizador</span>
         </div>
+    </nav>
 
-        <form id="auth-form" class="space-y-4">
-            <div>
-                <label class="block text-sm font-semibold mb-2">Usuário</label>
-                <input type="text" id="username" required class="w-full px-4 py-3 rounded-xl bg-black/5 dark:bg-white/5 border border-transparent focus:border-blue-500 outline-none transition">
+    <!-- Container Central -->
+    <main class="flex-grow flex items-center justify-center p-6">
+        <div class="auth-card w-full max-w-md p-10 rounded-[2.5rem] space-y-8 fade-in">
+            
+            <div class="text-center">
+                <h1 id="auth-title" class="text-3xl font-extrabold font-brand text-slate-900 mb-2 text-balance">Bem-vindo de volta</h1>
+                <p id="auth-subtitle" class="text-slate-500">Introduza os seus dados para aceder à sua mudança.</p>
             </div>
-            <div>
-                <label class="block text-sm font-semibold mb-2">Senha</label>
-                <input type="password" id="password" required class="w-full px-4 py-3 rounded-xl bg-black/5 dark:bg-white/5 border border-transparent focus:border-blue-500 outline-none transition">
+
+            <!-- Alerta de Mensagem -->
+            <div id="auth-message" class="hidden p-4 rounded-xl text-sm font-medium text-center"></div>
+
+            <form id="auth-form" onsubmit="handleSubmit(event)" class="space-y-5">
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-slate-700 ml-1">Usuário</label>
+                    <input type="text" id="username" required 
+                        class="input-field w-full p-4 rounded-2xl text-slate-900 placeholder:text-slate-400" 
+                        placeholder="Ex: daniel_correa">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-slate-700 ml-1">Senha</label>
+                    <input type="password" id="password" required 
+                        class="input-field w-full p-4 rounded-2xl text-slate-900 placeholder:text-slate-400" 
+                        placeholder="••••••••">
+                </div>
+
+                <button type="submit" id="submit-btn" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all transform active:scale-[0.98] shadow-lg shadow-blue-500/25 mt-4">
+                    Entrar
+                </button>
+            </form>
+
+            <div class="relative flex py-2 items-center">
+                <div class="flex-grow border-t border-slate-100"></div>
+                <span class="flex-shrink mx-4 text-slate-300 text-xs font-bold uppercase tracking-widest">ou</span>
+                <div class="flex-grow border-t border-slate-100"></div>
             </div>
-            <button type="submit" id="submit-btn" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition transform active:scale-95">
-                Entrar
-            </button>
-        </form>
 
-        <div id="auth-message" class="mt-4 p-3 rounded-lg text-sm hidden text-center"></div>
-
-        <div class="mt-8 pt-6 border-t border-gray-500/20 text-center">
-            <button onclick="toggleMode()" id="toggle-btn" class="text-blue-500 font-semibold hover:underline">
-                Não tem conta? Cadastre-se
-            </button>
+            <div class="text-center">
+                <p id="toggle-text" class="text-slate-500 text-sm">Ainda não tem uma conta?</p>
+                <button onclick="toggleMode()" id="toggle-btn" class="text-blue-600 font-bold hover:underline mt-1 focus:outline-none">
+                    Criar conta gratuitamente
+                </button>
+            </div>
         </div>
-    </div>
+    </main>
+
+    <footer class="py-8 text-center text-slate-400 text-xs">
+        © 2024 Organizador de Mudança — Sua vida pessoal em ordem.
+    </footer>
 
     <script>
-        const API_URL = "https://mudanca-ap.onrender.com/api/itens"; // Endpoint Unificado
-        const AUTH_URL = "https://mudanca-ap.onrender.com/api/auth"; // Assumindo padrão baseado no seu endpoint
-        
         let isLoginMode = true;
-
-        function applyTheme() {
-            const theme = localStorage.getItem('app-theme') || 'light';
-            document.documentElement.className = theme === 'light' ? 'light' : (theme === 'dark' ? 'dark' : `theme-${theme}`);
-        }
-        applyTheme();
+        
+		console.log(window.location.hostname)
+		const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+            ? "http://localhost:8080/api/itens"
+            : "https://mudanca-ap.onrender.com//api/itens";
 
         function toggleMode() {
             isLoginMode = !isLoginMode;
-            document.getElementById('auth-title').innerText = isLoginMode ? 'Bem-vindo de volta' : 'Crie sua conta';
-            document.getElementById('auth-subtitle').innerText = isLoginMode ? 'Acesse sua lista de mudança' : 'Comece a organizar hoje mesmo';
-            document.getElementById('submit-btn').innerText = isLoginMode ? 'Entrar' : 'Cadastrar';
-            document.getElementById('toggle-btn').innerText = isLoginMode ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Faça Login';
+            
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const submitBtn = document.getElementById('submit-btn');
+            const toggleText = document.getElementById('toggle-text');
+            const toggleBtn = document.getElementById('toggle-btn');
+            const messageBox = document.getElementById('auth-message');
+            const authCard = document.querySelector('.auth-card');
+
+            messageBox.classList.add('hidden');
+            authCard.style.opacity = '0';
+            
+            setTimeout(() => {
+                if (isLoginMode) {
+                    title.innerText = "Bem-vindo de volta";
+                    subtitle.innerText = "Introduza os seus dados para aceder à sua mudança.";
+                    submitBtn.innerText = "Entrar";
+                    toggleText.innerText = "Ainda não tem uma conta?";
+                    toggleBtn.innerText = "Criar conta gratuitamente";
+                } else {
+                    title.innerText = "Crie sua conta";
+                    subtitle.innerText = "Preencha os campos abaixo para começar a organizar.";
+                    submitBtn.innerText = "Cadastrar";
+                    toggleText.innerText = "Já possui uma conta?";
+                    toggleBtn.innerText = "Fazer login agora";
+                }
+                authCard.style.opacity = '1';
+            }, 150);
         }
 
-        document.getElementById('auth-form').onsubmit = async (e) => {
-            e.preventDefault();
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
             const submitBtn = document.getElementById('submit-btn');
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
+            
+            const endpoint = isLoginMode ? '/login' : '/register';
+            const url = `${API_BASE}${endpoint}`;
+            
+            const payload = {
+                "username": usernameInput,
+                "password": passwordInput
+            };
 
             submitBtn.disabled = true;
+            const originalBtnText = submitBtn.innerText;
             submitBtn.innerText = "Processando...";
 
             try {
-                // Adaptar conforme sua API real de auth se for diferente de /api/auth
-                const endpoint = isLoginMode ? `${AUTH_URL}/login` : `${AUTH_URL}/register`;
-                const response = await fetch(endpoint, {
+                const response = await fetch(url, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: user, password: pass })
+                    headers: {
+                        'accept': '*/*',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
                 });
 
                 if (response.ok) {
-                    const data = await response.json();
+                    // Tenta ler como texto primeiro para evitar erro de parse se o JSON estiver mal formado ou vazio
+                    const responseText = await response.text();
+                    let data = {};
+                    
+                    try {
+                        data = responseText ? JSON.parse(responseText) : {};
+                    } catch (e) {
+                        console.warn("A resposta não é um JSON válido:", responseText);
+                        data = { token: responseText }; // Assume que o corpo pode ser o próprio token
+                    }
+                    
                     if (isLoginMode) {
-                        localStorage.setItem('auth_token', btoa(`${user}:${pass}`)); // Fallback se não usar JWT
-                        window.location.href = 'app.html';
+                        // Verifica se o token veio no corpo (data.token) ou se o próprio data é a string do token
+                        const token = data.token || (typeof data === 'string' ? data : 'logged_in');
+                        
+                        localStorage.setItem('auth_token', token); 
+                        localStorage.setItem('user_session', JSON.stringify({
+                            username: usernameInput,
+                            token: token,
+                            loginTime: new Date().getTime()
+                        }));
+                        
+                        showMessage("Login realizado! Redirecionando...", "success");
+                        
+                        setTimeout(() => {
+                            window.location.href = 'app.html';
+                        }, 800);
                     } else {
-                        showMessage("Conta criada! Agora faça login.", "success");
+                        showMessage("Cadastro realizado! Agora você pode entrar.", "success");
                         toggleMode();
                     }
                 } else {
-                    showMessage("Erro na autenticação. Verifique os dados.", "error");
+                    const errorText = await response.text();
+                    console.error("Erro na API:", response.status, errorText);
+                    const errorMsg = isLoginMode 
+                        ? "Usuário ou senha incorretos." 
+                        : "Erro ao cadastrar. Tente outro nome de usuário.";
+                    showMessage(errorMsg, "error");
                 }
-            } catch (err) {
-                showMessage("Erro de conexão com o servidor.", "error");
+            } catch (error) {
+                console.error('Erro de conexão:', error);
+                showMessage("Erro de conexão com o servidor local (localhost:8080).", "error");
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerText = isLoginMode ? 'Entrar' : 'Cadastrar';
+                submitBtn.innerText = originalBtnText;
             }
-        };
+        }
 
         function showMessage(text, type) {
-            const msg = document.getElementById('auth-message');
-            msg.innerText = text;
-            msg.className = `mt-4 p-3 rounded-lg text-sm text-center ${type === 'error' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`;
+            const messageBox = document.getElementById('auth-message');
+            messageBox.innerText = text;
+            messageBox.classList.remove('hidden', 'bg-red-50', 'text-red-600', 'bg-green-50', 'text-green-600');
+            
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-50', 'text-red-600');
+            } else {
+                messageBox.classList.add('bg-green-50', 'text-green-600');
+            }
         }
+
+        window.onload = () => {
+            if (localStorage.getItem('auth_token')) {
+                window.location.href = 'app.html';
+            }
+        };
     </script>
 </body>
 </html>

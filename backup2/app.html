@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MudaEasy - Painel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        solarized: { bg: '#002b36', card: '#073642', text: '#93a1a1', accent: '#268bd2' },
+                        cyber: { bg: '#050505', card: '#1a1a1a', text: '#00ff41', accent: '#ff00ff' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: all 0.3s; }
+        .font-brand { font-family: 'Montserrat', sans-serif; }
+
+        /* Estilos de Tema persistentes */
+        .dark body { background-color: #0f172a; color: #f1f5f9; }
+        .theme-solarized body { background-color: #002b36; color: #93a1a1; }
+        .theme-cyber body { background-color: #050505; color: #00ff41; }
+        
+        .card-custom { 
+            background: rgba(255,255,255,0.03); 
+            border: 1px solid rgba(128,128,128,0.1); 
+            backdrop-filter: blur(8px);
+        }
+        .light .card-custom { background: white; border-color: #e2e8f0; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <header class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+        <div class="flex items-center gap-3">
+            <span class="text-3xl">📦</span>
+            <h1 class="text-2xl font-brand font-extrabold uppercase tracking-tight">MudaEasy</h1>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-4 bg-black/10 dark:bg-white/10 p-2 rounded-2xl">
+            <button onclick="setTheme('light')" class="w-8 h-8 rounded-full bg-white border border-gray-300 shadow-sm" title="Light"></button>
+            <button onclick="setTheme('dark')" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-600 shadow-sm" title="Dark"></button>
+            <button onclick="setTheme('solarized')" class="w-8 h-8 rounded-full bg-[#002b36] border border-[#073642] shadow-sm" title="Solarized"></button>
+            <button onclick="setTheme('cyber')" class="w-8 h-8 rounded-full bg-black border-2 border-[#00ff41] shadow-sm" title="Cyberpunk"></button>
+            <div class="w-px h-6 bg-gray-500/30 mx-2"></div>
+            <button onclick="logout()" class="text-sm font-bold opacity-70 hover:opacity-100 px-3">Sair</button>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto">
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="card-custom p-6 rounded-3xl">
+                <p class="text-sm opacity-60 uppercase font-bold mb-1">Total Orçado</p>
+                <h2 id="total-budget" class="text-3xl font-brand font-black text-blue-500">R$ 0,00</h2>
+            </div>
+            <div class="card-custom p-6 rounded-3xl md:col-span-2">
+                <div class="flex justify-between items-end mb-2">
+                    <p class="text-sm opacity-60 uppercase font-bold">Progresso da Mudança</p>
+                    <span id="progress-percent" class="text-xs font-bold">0%</span>
+                </div>
+                <div class="w-full h-4 bg-gray-500/20 rounded-full overflow-hidden">
+                    <div id="main-progress" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Adicionar Item -->
+        <section class="card-custom p-6 rounded-3xl mb-10">
+            <h3 class="font-bold mb-4 flex items-center gap-2"><span>➕</span> Novo Item</h3>
+            <form id="add-form" class="flex flex-col md:flex-row gap-3">
+                <input type="text" id="item-name" placeholder="Ex: Geladeira, Sofá, Pintura..." required 
+                    class="flex-1 px-4 py-3 rounded-xl bg-black/5 dark:bg-white/5 border border-transparent focus:border-blue-500 outline-none">
+                <input type="number" id="item-value" placeholder="Valor R$" step="0.01"
+                    class="w-full md:w-32 px-4 py-3 rounded-xl bg-black/5 dark:bg-white/5 border border-transparent focus:border-blue-500 outline-none">
+                <select id="item-loc" class="px-4 py-3 rounded-xl bg-black/5 dark:bg-white/5 border border-transparent focus:border-blue-500 outline-none">
+                    <option value="NOVO">Imóvel Novo</option>
+                    <option value="ANTIGO">Imóvel Antigo</option>
+                </select>
+                <button type="submit" class="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition">Adicionar</button>
+            </form>
+        </section>
+
+        <!-- Listas -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="space-y-4">
+                <h3 class="text-xl font-brand font-bold flex items-center gap-2">🏠 Imóvel Novo</h3>
+                <div id="list-novo" class="space-y-3"></div>
+            </div>
+            <div class="space-y-4">
+                <h3 class="text-xl font-brand font-bold flex items-center gap-2">🏢 Imóvel Antigo</h3>
+                <div id="list-antigo" class="space-y-3"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = "localhost:8080/api/itens";
+        let items = [];
+
+        // Gerenciamento de Tema
+        function setTheme(theme) {
+            localStorage.setItem('app-theme', theme);
+            applyTheme();
+        }
+
+        function applyTheme() {
+            const theme = localStorage.getItem('app-theme') || 'light';
+            document.documentElement.className = '';
+            if (theme !== 'light') {
+                if (theme === 'dark') document.documentElement.classList.add('dark');
+                else document.documentElement.classList.add(`theme-${theme}`);
+            }
+        }
+        applyTheme();
+
+        // Auth e Dados
+        function getHeaders() {
+            const token = localStorage.getItem('auth_token');
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Basic ${token}`
+            };
+        }
+
+        async function loadItems() {
+            try {
+                const res = await fetch(API_URL, { headers: getHeaders() });
+                if (res.status === 401) logout();
+                items = await res.json();
+                render();
+            } catch (err) { console.error("Erro ao carregar", err); }
+        }
+
+        function render() {
+            const novoEl = document.getElementById('list-novo');
+            const antigoEl = document.getElementById('list-antigo');
+            novoEl.innerHTML = antigoEl.innerHTML = "";
+            
+            let total = 0;
+            let concluidos = 0;
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `card-custom p-4 rounded-2xl flex justify-between items-center group ${item.concluido ? 'opacity-50' : ''}`;
+                
+                total += item.value || 0;
+                if(item.concluido) concluidos++;
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" ${item.concluido ? 'checked' : ''} 
+                            onchange="toggleItem(${item.id})" class="w-5 h-5 rounded-lg border-2 border-blue-500">
+                        <div>
+                            <p class="font-semibold ${item.concluido ? 'line-through' : ''}">${item.nome}</p>
+                            <p class="text-xs opacity-50">R$ ${item.value.toLocaleString('pt-BR')}</p>
+                        </div>
+                    </div>
+                    <button onclick="deleteItem(${item.id})" class="text-red-500 opacity-0 group-hover:opacity-100 transition">Remover</button>
+                `;
+                
+                if(item.localizacao === 'NOVO') novoEl.appendChild(card);
+                else antigoEl.appendChild(card);
+            });
+
+            document.getElementById('total-budget').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            const pct = items.length ? Math.round((concluidos/items.length)*100) : 0;
+            document.getElementById('main-progress').style.width = `${pct}%`;
+            document.getElementById('progress-percent').innerText = `${pct}%`;
+        }
+
+        document.getElementById('add-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                nome: document.getElementById('item-name').value,
+                value: parseFloat(document.getElementById('item-value').value) || 0,
+                localizacao: document.getElementById('item-loc').value,
+                concluido: false
+            };
+            
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(payload)
+            });
+            document.getElementById('add-form').reset();
+            loadItems();
+        };
+
+        async function toggleItem(id) {
+            const item = items.find(i => i.id === id);
+            await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify({...item, concluido: !item.concluido})
+            });
+            loadItems();
+        }
+
+        async function deleteItem(id) {
+            if(!confirm("Deseja remover este item?")) return;
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: getHeaders() });
+            loadItems();
+        }
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            window.location.href = 'login.html';
+        }
+
+        if(!localStorage.getItem('auth_token')) logout();
+        else loadItems();
+    </script>
+</body>
+</html>
