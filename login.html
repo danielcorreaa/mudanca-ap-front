@@ -50,7 +50,7 @@
 
     <!-- Navegação Simplificada -->
     <nav class="max-w-7xl mx-auto px-6 py-6 w-full flex justify-between items-center">
-        <a href="landing.html" class="flex items-center gap-2 group">
+        <a href="index.html" class="flex items-center gap-2 group">
             <span class="text-2xl transition-transform group-hover:-translate-x-1">⬅️</span>
             <span class="font-brand font-bold text-slate-800 tracking-tight">Voltar</span>
         </a>
@@ -114,8 +114,7 @@
 
     <script>
         let isLoginMode = true;
-        
-		console.log(window.location.hostname)
+       
 		const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
             ? "http://localhost:8080/api/itens"
             : "https://mudanca-ap.onrender.com//api/itens";
@@ -153,6 +152,8 @@
         }
 
         async function handleSubmit(event) {
+		 
+			console.log(window.location.hostname)
             event.preventDefault();
             const usernameInput = document.getElementById('username').value;
             const passwordInput = document.getElementById('password').value;
