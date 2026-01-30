@@ -117,7 +117,7 @@
        
 		const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
             ? "http://localhost:8080/api/itens"
-            : "https://mudanca-ap.onrender.com//api/itens";
+            : "https://mudanca-ap.onrender.com/api/itens";
 
         function toggleMode() {
             isLoginMode = !isLoginMode;
@@ -223,7 +223,7 @@
                 }
             } catch (error) {
                 console.error('Erro de conexão:', error);
-                showMessage("Erro de conexão com o servidor local (localhost:8080).", "error");
+                showMessage("Erro de conexão com o servidor "+url+" .", "error");
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerText = originalBtnText;
