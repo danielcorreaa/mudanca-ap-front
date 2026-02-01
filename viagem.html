@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✈️ Planejador de Viagem - API Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        solarized: { bg: '#002b36', card: '#073642', text: '#93a1a1', accent: '#268bd2' },
+                        cyber: { bg: '#050505', card: '#1a1a1a', text: '#00ff41', accent: '#ff00ff' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Montserrat:wght@700;800&family=Fira+Code:wght@400;600&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; transition: all 0.3s ease; }
+        .font-brand { font-family: 'Montserrat', sans-serif; letter-spacing: -0.02em; }
+
+        :root { --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --accent: #0ea5e9; --border: #e2e8f0; --font-main: 'Inter', sans-serif; --input-bg: rgba(0,0,0,0.05); --radius: 1rem; }
+        .dark { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #0ea5e9; --border: #334155; --font-main: 'Inter', sans-serif; --input-bg: rgba(255,255,255,0.05); --radius: 1rem; }
+        .theme-solarized { --bg: #002b36; --card: #073642; --text: #93a1a1; --accent: #268bd2; --border: #586e75; --font-main: 'Inter', sans-serif; --input-bg: #00212b; --radius: 1rem; }
+        .theme-cyberpunk { --bg: #0d0221; --card: #240b36; --text: #00f5ff; --accent: #ff00ff; --border: #712275; --font-main: 'Inter', sans-serif; --input-bg: #1a062d; --radius: 1rem; }
+        
+        .theme-dos { 
+            --bg: #000000; 
+            --card: #000000; 
+            --text: #aaaaaa; 
+            --accent: #ffffff; 
+            --border: #aaaaaa; 
+            --font-main: 'Fira Code', monospace; 
+            --input-bg: #000000; 
+            --radius: 0px !important; 
+        }
+
+        /* Ajuste para ícones e textos pretos no tema DOS quando necessário */
+        .theme-dos .bg-accent-dynamic { color: #000000 !important; font-weight: 900; }
+        
+        body { background-color: var(--bg); color: var(--text); font-family: var(--font-main); }
+        .card-dynamic { background-color: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius); }
+        .accent-dynamic { color: var(--accent); }
+        .bg-accent-dynamic { background-color: var(--accent); }
+
+        input, select, option, button, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-full { border-radius: var(--radius) !important; }
+
+        input, select, option { background-color: var(--input-bg) !important; color: var(--text) !important; }
+        select option { background-color: var(--card) !important; color: var(--text) !important; }
+
+        .progress-bar { height: 10px; border-radius: var(--radius); background-color: var(--border); overflow: hidden; }
+        .progress-fill { height: 100%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        .cat-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: calc(var(--radius) / 2); }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        .theme-dot { cursor: pointer; transition: all 0.2s; border-radius: 9999px !important; }
+        .theme-dot:hover { transform: scale(1.2); }
+        
+        .theme-dos .border-b-4 { border-bottom-width: 1px !important; }
+        .theme-dos .border-l-4 { border-left-width: 1px !important; }
+        .theme-dos .border-t-4 { border-top-width: 1px !important; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pb-20">
+    <div class="max-w-6xl mx-auto p-4 md:p-8 flex-grow w-full">
+        <!-- Cabeçalho -->
+        <header class="mb-8 flex flex-col md:flex-row md:items-start justify-between gap-6">
+            <div class="flex-1">
+                <div class="flex flex-col gap-2">
+                    <div class="flex items-center justify-between md:justify-start gap-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-4xl">✈️</span>
+                            <h1 class="text-3xl font-extrabold font-brand tracking-tight">Trip Planner</h1>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-end gap-6 mt-4">
+                        <div class="flex flex-col gap-3">
+                            <!-- Seletor de Temas -->
+                            <div class="flex items-center gap-3 bg-black/10 dark:bg-white/10 p-2 px-3 rounded-2xl w-fit">
+                                <div onclick="changeTheme('light')" data-theme="light" class="theme-dot w-6 h-6 bg-white border border-gray-300"></div>
+                                <div onclick="changeTheme('dark')" data-theme="dark" class="theme-dot w-6 h-6 bg-slate-800 border border-slate-600"></div>
+                                <div onclick="changeTheme('theme-solarized')" data-theme="theme-solarized" class="theme-dot w-6 h-6 bg-[#002b36]"></div>
+                                <div onclick="changeTheme('theme-cyberpunk')" data-theme="theme-cyberpunk" class="theme-dot w-6 h-6 bg-[#ff00ff] border-2 border-[#00f5ff]"></div>
+                                <div onclick="changeTheme('theme-dos')" data-theme="theme-dos" class="theme-dot w-6 h-6 bg-black border border-white flex items-center justify-center text-[8px] text-white">C:\</div>
+                            </div>
+                            
+                            <!-- Status de Conexão -->
+                            <div id="connection-status" class="flex items-center gap-2 px-3 py-1 rounded-full bg-black/10 dark:bg-white/10 text-[10px] font-bold uppercase tracking-widest opacity-70 w-fit">
+                                <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+                                <span>Verificando...</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-end gap-4">
+                            <div class="flex flex-col">
+                                <label class="text-[10px] uppercase font-bold opacity-60 ml-1">Meta de Orçamento</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs opacity-50 font-bold">R$</span>
+                                    <input type="number" id="spending-limit" onblur="updateMeta(this.value)" placeholder="0,00" class="bg-black/10 dark:bg-white/10 border border-gray-500 p-2 pl-9 outline-none text-sm w-40 focus:ring-1 focus:ring-white font-bold">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-4 w-full md:w-auto items-end">
+                <div class="flex flex-col sm:flex-row gap-4 w-full">
+                    <div class="card-dynamic p-5 shadow-lg min-w-[200px] border-b-4 border-b-blue-500 flex-1">
+                        <p class="text-[10px] opacity-60 uppercase font-bold tracking-widest">Total Gasto</p>
+                        <h2 id="total-budget" class="text-2xl font-black">R$ 0,00</h2>
+                    </div>
+                    <div id="remaining-card" class="card-dynamic p-5 shadow-lg min-w-[200px] border-b-4 border-b-green-500 transition-all flex-1">
+                        <p class="text-[10px] opacity-60 uppercase font-bold tracking-widest" id="remaining-label">Saldo Disponível</p>
+                        <h2 id="remaining-budget" class="text-2xl font-black">R$ 0,00</h2>
+                        <p id="alert-msg" class="text-[10px] font-bold mt-1 hidden text-white">⚠️ ORÇAMENTO ESTOURADO!</p>
+                    </div>
+                </div>
+                
+                <button onclick="logout()" class="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-red-500 hover:bg-red-500/10 transition-colors border border-red-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>SAIR DA CONTA</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Formulário -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-2 card-dynamic p-6 shadow-sm border-t-4 border-t-accent-dynamic">
+                <h3 class="font-bold text-lg mb-4 flex items-center gap-2">➕ Adicionar Gasto</h3>
+                <form id="add-form" onsubmit="handleFormSubmit(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                    <div class="md:col-span-5">
+                        <input type="text" id="item-name" required placeholder="Ex: Voo SP-Paris..." class="bg-black/5 dark:bg-white/5 border border-gray-500 p-3 outline-none w-full font-medium">
+                    </div>
+                    <div class="md:col-span-3">
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs opacity-40 font-bold">R$</span>
+                            <input type="number" step="0.01" id="item-value" required placeholder="Valor" class="bg-black/5 dark:bg-white/5 border border-gray-500 p-3 pl-9 outline-none w-full font-bold">
+                        </div>
+                    </div>
+                    <div class="md:col-span-3">
+                        <select id="item-category" class="bg-black/5 dark:bg-white/5 border border-gray-500 p-3 outline-none w-full font-medium">
+                            <!-- Populado via API -->
+                        </select>
+                    </div>
+                    <div class="md:col-span-1">
+                        <button type="submit" class="bg-accent-dynamic text-white w-full h-full flex items-center justify-center hover:opacity-90 shadow-md">✓</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-dynamic p-6 shadow-sm flex flex-col justify-center">
+                <div class="flex justify-between items-end mb-2">
+                    <h3 class="font-bold text-sm opacity-70 uppercase tracking-widest">Progresso</h3>
+                    <span id="pct-text" class="text-xl font-black accent-dynamic">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="main-progress" class="progress-fill bg-accent-dynamic" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="flex overflow-x-auto gap-3 pb-4 mb-4 no-scrollbar" id="category-filters">
+            <button onclick="filterItems('all')" class="px-4 py-2 border border-current opacity-60 hover:opacity-100 text-xs font-bold whitespace-nowrap">Todos</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12" id="items-grid"></div>
+    </div>
+
+    <!-- Modal Edição -->
+    <div id="modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+        <div class="card-dynamic p-8 w-full max-w-sm shadow-2xl">
+            <h3 class="font-bold text-xl mb-6 uppercase tracking-widest">Editar Valor</h3>
+            <div class="relative mb-8">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold opacity-40">R$</span>
+                <input type="number" step="0.01" id="edit-value" class="bg-black/10 dark:bg-white/10 w-full p-4 pl-12 border border-gray-500 outline-none text-xl font-black">
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeModal()" class="flex-1 py-3 font-bold border-2 border-current opacity-70 hover:opacity-100 transition-opacity">Sair</button>
+                <button onclick="saveValue()" class="flex-1 py-3 bg-accent-dynamic text-white font-bold hover:brightness-110 shadow-lg">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === ""
+            ? "http://localhost:8080/api"
+            : "https://mudanca-ap.onrender.com/api";
+            
+        const TRIP_API_URL = `${BASE_API_URL}/trip`;
+        const AUTH_TOKEN = localStorage.getItem('auth_token');
+        
+        let items = [];
+        let categories = {};
+        let limitValue = 0;
+        let currentEditId = null;
+        let currentFilter = 'all';
+
+        function setStatus(type) {
+            const el = document.getElementById('connection-status');
+            if (type === 'online') {
+                el.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500"></span><span>Online</span>`;
+            } else if (type === 'offline') {
+                el.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span><span>Offline</span>`;
+            } else {
+                el.innerHTML = `<span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span><span>Conectando...</span>`;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            window.location.href = 'index.html';
+        }
+
+        async function apiFetch(url, options = {}) {
+            if (!AUTH_TOKEN) {
+                window.location.href = 'index.html';
+                return null;
+            }
+            const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${AUTH_TOKEN}`, ...options.headers };
+            try {
+                const response = await fetch(url, { ...options, headers });
+                setStatus('online');
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) logout();
+                    throw new Error('Falha na API');
+                }
+                return response.status !== 204 ? await response.json() : null;
+            } catch (err) {
+                setStatus('offline');
+                console.error(err);
+                return null;
+            }
+        }
+
+        async function initData() {
+            setStatus('loading');
+            let cats = await apiFetch(`${TRIP_API_URL}/categories`);
+            if (!cats || cats.length === 0) cats = await apiFetch(`${TRIP_API_URL}/categories/init`, { method: 'POST' });
+            
+            if (cats) {
+                const select = document.getElementById('item-category');
+                const filterContainer = document.getElementById('category-filters');
+                cats.forEach(c => {
+                    categories[c.id] = c;
+                    select.innerHTML += `<option value="${c.id}">${c.icon} ${c.label}</option>`;
+                    filterContainer.innerHTML += `
+                        <button onclick="filterItems('${c.id}')" class="px-4 py-2 bg-white/5 border border-transparent hover:border-current text-xs font-bold whitespace-nowrap transition-all">
+                            ${c.icon} ${c.label}
+                        </button>`;
+                });
+            }
+
+            const meta = await apiFetch(`${BASE_API_URL}/metas/VIAGEM/VIAGEM--dani`);
+            if (meta) {
+                limitValue = meta;
+                document.getElementById('spending-limit').value = limitValue;
+            }
+            await fetchItems();
+        }
+
+        async function fetchItems() {
+            items = await apiFetch(`${TRIP_API_URL}`) || [];
+            render();
+        }
+
+        async function updateMeta(val) {
+            limitValue = parseFloat(val) || 0;
+            await apiFetch(`${BASE_API_URL}/metas/VIAGEM`, {
+                method: 'POST',
+                body: JSON.stringify({ id: "VIAGEM--dani", valor: limitValue })
+            });
+            render();
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const newItem = {
+                name: document.getElementById('item-name').value,
+                value: parseFloat(document.getElementById('item-value').value),
+                categoryId: document.getElementById('item-category').value,
+                usuario: "dani"
+            };
+            await apiFetch(`${TRIP_API_URL}`, { method: 'POST', body: JSON.stringify(newItem) });
+            document.getElementById('add-form').reset();
+            await fetchItems();
+        }
+
+        async function deleteItem(id) {
+            await apiFetch(`${TRIP_API_URL}/${id}`, { method: 'DELETE' });
+            await fetchItems();
+        }
+
+        async function saveValue() {
+            const val = parseFloat(document.getElementById('edit-value').value);
+            await apiFetch(`${TRIP_API_URL}/${currentEditId}`, { method: 'PUT', body: JSON.stringify({ newValue: val }) });
+            closeModal();
+            await fetchItems();
+        }
+
+        function render() {
+            const grid = document.getElementById('items-grid');
+            grid.innerHTML = '';
+            let total = 0;
+            const filtered = currentFilter === 'all' ? items : items.filter(i => i.categoryId === currentFilter);
+            items.forEach(i => total += i.value);
+
+            filtered.forEach(item => {
+                const cat = categories[item.categoryId] || { label: 'Outro', icon: '❓' };
+                const card = document.createElement('div');
+                card.className = 'card-dynamic p-5 shadow-sm border-l-4 transition-all hover:shadow-md';
+                card.style.borderLeftColor = `var(--accent)`;
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="cat-icon bg-black/5 dark:bg-white/5 text-xl">${cat.icon}</div>
+                            <div>
+                                <p class="text-[10px] font-black uppercase opacity-40">${cat.label}</p>
+                                <h4 class="font-bold text-sm uppercase">${item.name}</h4>
+                                <div class="cursor-pointer" onclick="openEdit('${item.id}', ${item.value})">
+                                    <span class="text-lg font-black accent-dynamic">R$ ${item.value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="deleteItem('${item.id}')" class="text-red-500/40 hover:text-red-500">🗑️</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            const format = v => `R$ ${v.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('total-budget').innerText = format(total);
+            
+            const remaining = limitValue - total;
+            const remainingCard = document.getElementById('remaining-card');
+            const remainingLabel = document.getElementById('remaining-label');
+            const remainingBudget = document.getElementById('remaining-budget');
+            const alertMsg = document.getElementById('alert-msg');
+            
+            document.getElementById('remaining-budget').innerText = format(Math.abs(remaining));
+            
+            if (remaining < 0) {
+                remainingCard.classList.remove('border-b-green-500');
+                remainingCard.classList.add('bg-red-600', 'border-red-900', 'text-white', 'border-2');
+                remainingLabel.innerText = "Saldo Restante";
+                remainingLabel.classList.add('text-white', 'opacity-90');
+                remainingBudget.classList.add('text-white');
+                alertMsg.classList.remove('hidden');
+            } else {
+                remainingCard.classList.remove('bg-red-600', 'border-red-900', 'text-white', 'border-2');
+                remainingCard.classList.add('border-b-green-500');
+                remainingLabel.innerText = "Saldo Disponível";
+                remainingLabel.classList.remove('text-white', 'opacity-90');
+                remainingBudget.classList.remove('text-white');
+                alertMsg.classList.add('hidden');
+            }
+
+            const pct = limitValue > 0 ? Math.min((total / limitValue) * 100, 100) : 0;
+            document.getElementById('main-progress').style.width = `${pct}%`;
+            document.getElementById('pct-text').innerText = `${Math.round(pct)}%`;
+        }
+
+        function filterItems(cat) { currentFilter = cat; render(); }
+        function openEdit(id, val) { currentEditId = id; document.getElementById('edit-value').value = val; document.getElementById('modal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+        function changeTheme(themeName) {
+            const themes = ['theme-solarized', 'theme-cyberpunk', 'theme-dos', 'dark'];
+            document.documentElement.classList.remove(...themes);
+            
+            const dots = document.querySelectorAll('.theme-dot');
+            dots.forEach(dot => {
+                dot.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500', 'scale-110');
+                if (dot.getAttribute('data-theme') === themeName) dot.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500', 'scale-110');
+            });
+            
+            if (themeName !== 'light') {
+                document.documentElement.classList.add(themeName === 'dark' ? 'dark' : themeName);
+            }
+            localStorage.setItem('trip-theme', themeName);
+        }
+
+        window.onload = () => {
+            const savedTheme = localStorage.getItem('trip-theme') || 'dark';
+            changeTheme(savedTheme);
+            initData();
+        };
+    </script>
+</body>
+</html>

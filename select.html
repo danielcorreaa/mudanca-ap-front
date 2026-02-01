@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizador de Projetos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="relative flex items-center justify-center min-h-screen p-4">
+
+    <!-- Botão de Sair (Logout) -->
+    <div class="absolute top-6 right-6">
+        <button id="logoutBtn" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all font-medium shadow-sm">
+            <i class="fas fa-right-from-bracket"></i>
+            Sair e Limpar Dados
+        </button>
+    </div>
+
+    <div class="max-w-4xl w-full">
+        <!-- Cabeçalho -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-extrabold text-slate-800 mb-4">Olá! 👋</h1>
+            <p class="text-xl text-slate-600">O que você pretende organizar hoje?</p>
+        </div>
+
+        <!-- Opções de Organização -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Card Mudança -->
+            <a href="mudanca.html" class="block">
+                <div class="card-hover bg-white p-8 rounded-2xl border border-slate-200 text-center cursor-pointer group">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-truck-ramp-box text-3xl text-blue-600 group-hover:text-white"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Mudança</h2>
+                    <p class="text-slate-500">Organize caixas, transportes e checklists para seu novo lar.</p>
+                    <div class="mt-6 inline-flex items-center text-blue-600 font-semibold">
+                        Começar agora <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card Viagem -->
+            <a href="viagem.html" class="block">
+                <div class="card-hover bg-white p-8 rounded-2xl border border-slate-200 text-center cursor-pointer group">
+                    <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-emerald-600 transition-colors">
+                        <i class="fas fa-plane-departure text-3xl text-emerald-600 group-hover:text-white"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Viagem</h2>
+                    <p class="text-slate-500">Planeje roteiros, malas e documentos para sua próxima aventura.</p>
+                    <div class="mt-6 inline-flex items-center text-emerald-600 font-semibold">
+                        Começar agora <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+
+        <!-- Rodapé / Sugestão -->
+        <div class="text-center mt-12 text-slate-400">
+            <p class="text-sm italic">Mais categorias em breve...</p>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação (Simples) -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl">
+            <h3 class="text-lg font-bold text-slate-800 mb-2">Tem certeza?</h3>
+            <p class="text-slate-600 mb-6">Isso irá limpar todos os seus dados salvos localmente (Mudanças e Viagens) e deslogar do sistema.</p>
+            <div class="flex gap-3 justify-end">
+                <button id="cancelBtn" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">Cancelar</button>
+                <button id="confirmLogout" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Sim, Sair e Limpar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const logoutBtn = document.getElementById('logoutBtn');
+        const confirmModal = document.getElementById('confirmModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const confirmLogout = document.getElementById('confirmLogout');
+
+        // Abre o modal de confirmação
+        logoutBtn.addEventListener('click', () => {
+            confirmModal.style.display = 'flex';
+        });
+
+        // Fecha o modal
+        cancelBtn.addEventListener('click', () => {
+            confirmModal.style.display = 'none';
+        });
+
+        // Lógica de Logout
+        confirmLogout.addEventListener('click', () => {
+            // Limpa o localStorage
+            localStorage.clear();
+            
+            // Feedback visual e redirecionamento
+            console.log('Dados limpos. Redirecionando...');
+            
+            // Simula redirecionamento para a tela de login (index.html ou similar)
+            window.location.href = 'index.html';
+        });
+
+        // Feedback visual nos links dos cards
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                console.log('Navegando para: ' + this.getAttribute('href'));
+            });
+        });
+
+        // Fechar modal ao clicar fora dele
+        window.onclick = function(event) {
+            if (event.target == confirmModal) {
+                confirmModal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
